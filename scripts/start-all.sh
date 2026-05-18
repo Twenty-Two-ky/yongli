@@ -19,7 +19,7 @@ echo "[4/5] Starting 3 Worker instances..."
 (cd "$SCRIPT_DIR/worker" && WORKER_NAME=worker-2 python worker.py) &
 (cd "$SCRIPT_DIR/worker" && WORKER_NAME=worker-3 python worker.py) &
 
-echo "[5/5] Starting frontend dev server (:5173)..."
+echo "[5/5] Starting frontend dev server (:3000)..."
 (cd "$SCRIPT_DIR/frontend" && npm run dev) &
 
 echo ""
@@ -27,6 +27,6 @@ echo "All services started!"
 echo "  Demo (local):     http://localhost:8001"
 echo "  Demo (staging):   http://localhost:8002"
 echo "  Backend API:      http://localhost:8080"
-echo "  Frontend:         http://localhost:5173"
+echo "  Frontend:         http://localhost:3000"
 echo "  Press Ctrl+C to stop all."
 wait

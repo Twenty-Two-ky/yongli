@@ -62,7 +62,7 @@ try {
     }
     $jobs += $job6
 
-    Write-Host "[5/5] Starting frontend dev server (:5173)..." -ForegroundColor Green
+    Write-Host "[5/5] Starting frontend dev server (:3000)..." -ForegroundColor Green
     $job7 = Start-Job -Name "frontend" -ArgumentList $RootDir {
         param($dir)
         Set-Location "$dir\frontend"
@@ -75,7 +75,7 @@ try {
     Write-Host "  Demo (local):     http://localhost:8001" -ForegroundColor Yellow
     Write-Host "  Demo (staging):   http://localhost:8002" -ForegroundColor Yellow
     Write-Host "  Backend API:      http://localhost:8080" -ForegroundColor Yellow
-    Write-Host "  Frontend:         http://localhost:5173" -ForegroundColor Yellow
+    Write-Host "  Frontend:         http://localhost:3000" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Press Ctrl+C to stop all." -ForegroundColor Gray
     Write-Host "To view output: Receive-Job -Name <job-name> | select -Last 20" -ForegroundColor Gray
