@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p docs/superpowers/specs)",
+      "Bash(mkdir -p docs/superpowers/plans)",
+      "Read(//c/Users/22878/.claude/skills/subagent-driven-development/**)",
+      "Bash(git init *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\22878\\\\Desktop\\\\vibe cod\\\\test-claude\\\\demo-service\")",
+      "Bash(pip --version)",
+      "Bash(pip install *)",
+      "Bash(python demo-service/server.py --env-name local --port 8001)",
+      "Bash(curl -s http://localhost:8001/api/v1/health)",
+      "Bash(curl -s http://localhost:8001/api/v1/products)",
+      "Bash(curl -s -X POST http://localhost:8001/api/v1/login -H \"Content-Type: application/json\" -d \"{\\\\\"username\\\\\":\\\\\"admin\\\\\",\\\\\"password\\\\\":\\\\\"123456\\\\\"}\")",
+      "Bash(curl -s http://localhost:8001/api/v1/orders)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\22878\\Desktop\\vibe cod\\test-claude\\docs\\superpowers",
+      "C:\\Users\\22878\\Desktop\\vibe cod\\test-claude"
+    ]
+  }
+}

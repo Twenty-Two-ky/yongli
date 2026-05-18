@@ -16,3 +16,8 @@ app.include_router(workers.router, prefix="/api")
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+if __name__ == "__main__":
+    import uvicorn
+    from config import MASTER_HOST, MASTER_PORT
+    uvicorn.run(app, host=MASTER_HOST, port=MASTER_PORT)
