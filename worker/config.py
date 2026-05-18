@@ -1,0 +1,6 @@
+import os
+MASTER_URL = os.getenv("MASTER_URL", "http://localhost:8080")
+WORKER_NAME = os.getenv("WORKER_NAME", "worker-1")
+HEARTBEAT_INTERVAL = 10
+LONG_POLL_TIMEOUT = 20
+RESULTS_BATCH_SIZE = 200
