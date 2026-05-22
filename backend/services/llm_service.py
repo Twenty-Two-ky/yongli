@@ -1,8 +1,11 @@
 import json
 from anthropic import Anthropic
-from config import ANTHROPIC_API_KEY, LLM_MODEL
+from config import ANTHROPIC_API_KEY, ANTHROPIC_BASE_URL, LLM_MODEL
 
-client = Anthropic(api_key=ANTHROPIC_API_KEY)
+client_kwargs = {"api_key": ANTHROPIC_API_KEY}
+if ANTHROPIC_BASE_URL:
+    client_kwargs["base_url"] = ANTHROPIC_BASE_URL
+client = Anthropic(**client_kwargs)
 
 SYSTEM_PROMPT = """You are an API testing expert. Given a natural language instruction and environment info, output a JSON task definition.
 
