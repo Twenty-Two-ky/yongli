@@ -1,11 +1,31 @@
 import json
-from anthropic import Anthropic
+import httpx
 from config import ANTHROPIC_API_KEY, ANTHROPIC_BASE_URL, LLM_MODEL
 
-client_kwargs = {"api_key": ANTHROPIC_API_KEY}
-if ANTHROPIC_BASE_URL:
-    client_kwargs["base_url"] = ANTHROPIC_BASE_URL
-client = Anthropic(**client_kwargs)
+LITELLM_BASE_URL = ANTHROPIC_BASE_URL or "https://api.deepseek.com"
+_client = httpx.Client(timeout=30, headers={
+    "Authorization": f"Bearer {ANTHROPIC_API_KEY}",
+    "Content-Type": "application/json",
+})
+
+
+def _call_llm(system_prompt: str, user_message: str, max_tokens: int = 2048) -> str:
+    """Call DeepSeek (OpenAI-compatible) chat completions API."""
+    resp = _client.post(
+        f"{LITELLM_BASE_URL}/v1/chat/completions",
+        json={
+            "model": LLM_MODEL,
+            "temperature": 0,
+            "max_tokens": max_tokens,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+        },
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"]
+
 
 SYSTEM_PROMPT = """You are an API testing expert. Given a natural language instruction and environment info, output a JSON task definition.
 
@@ -29,7 +49,6 @@ Rules:
 
 
 # ── Fallback: pre-defined parsed_actions for the 3 demo scenarios ──
-# Keyed by simple keyword matching. Used when LLM call fails (network, timeout, API error).
 FALLBACK_PARSED_ACTIONS = {
     "login_admin_123456": {
         "task_type": "single",
@@ -75,6 +94,7 @@ FALLBACK_PARSED_ACTIONS = {
     }
 }
 
+
 def _match_fallback(nl_text: str) -> dict | None:
     """Simple keyword matching for fallback when LLM is unavailable."""
     lower = nl_text.lower()
@@ -95,18 +115,14 @@ Auth config: {json.dumps(environment.get('auth_config', {}))}
 Default headers: {json.dumps(environment.get('default_headers', {}))}"""
 
     try:
-        message = client.messages.create(
-            model=LLM_MODEL,
+        response_text = _call_llm(
+            SYSTEM_PROMPT,
+            f"Environment info:\n{env_context}\n\nInstruction: {natural_language}",
             max_tokens=2048,
-            temperature=0,
-            timeout=15,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": f"Environment info:\n{env_context}\n\nInstruction: {natural_language}"}],
         )
-        response_text = message.content[0].text.strip()
         if response_text.startswith("```"):
             lines = response_text.split("\n")
-            response_text = "\n".join(lines[1:-1])
+            response_text = "\n".join(lines[1:-1]) if len(lines) > 2 else response_text
         parsed = json.loads(response_text)
         mode = parsed["mode"]
         task_type_map = {"sequential": "single", "parameterized": "abnormal", "load": "stress"}
@@ -153,16 +169,15 @@ def analyze_failures(task_context: dict, failed_results: list[dict]) -> dict:
         for r in failed_results
     ])
 
-    message = client.messages.create(
-        model=LLM_MODEL,
-        max_tokens=1024,
-        system=FAILURE_ANALYSIS_PROMPT,
-        messages=[{"role": "user", "content": f"Task: {task_context.get('natural_language', '')}\nTask type: {task_context.get('task_type', '')}\n\nFailed results ({len(failed_results)} failures):\n{failures_text}"}],
-    )
-
-    response_text = message.content[0].text.strip()
-    if response_text.startswith("```"):
-        lines = response_text.split("\n")
-        response_text = "\n".join(lines[1:-1])
-
-    return json.loads(response_text)
+    try:
+        response_text = _call_llm(
+            FAILURE_ANALYSIS_PROMPT,
+            f"Task: {task_context.get('natural_language', '')}\nTask type: {task_context.get('task_type', '')}\n\nFailed results ({len(failed_results)} failures):\n{failures_text}",
+            max_tokens=1024,
+        )
+        if response_text.startswith("```"):
+            lines = response_text.split("\n")
+            response_text = "\n".join(lines[1:-1]) if len(lines) > 2 else response_text
+        return json.loads(response_text)
+    except Exception:
+        return {"summary": "AI analysis unavailable.", "failure_categories": []}
